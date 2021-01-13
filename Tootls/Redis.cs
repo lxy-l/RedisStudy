@@ -22,6 +22,10 @@ namespace Tools
             sub = redis.GetSubscriber();
         }
 
+        public bool KeyExists(RedisKey key, CommandFlags flags = CommandFlags.None)
+        {
+            return redisDb.KeyExists(key,flags);
+        }
 
         public bool StringSet(RedisKey key, RedisValue value, TimeSpan? expiry = null)
         {
@@ -31,6 +35,21 @@ namespace Tools
         public async Task<bool> StringSetAsync(RedisKey key, RedisValue value, TimeSpan? expiry = null)
         {
             return await redisDb.StringSetAsync(key, value, expiry).ConfigureAwait(false);
+        }
+
+        public long StringDecrement(RedisKey key, long value = 1, CommandFlags flags = CommandFlags.None)
+        {
+            return redisDb.StringDecrement(key, value, flags);
+        }
+
+        public long StringIncrement(RedisKey key, long value = 1, CommandFlags flags = CommandFlags.None)
+        {
+            return redisDb.StringIncrement(key, value, flags);
+        }
+
+        public RedisValue StringGet(RedisKey key, CommandFlags flags = CommandFlags.None)
+        {
+            return redisDb.StringGet(key, flags);
         }
 
 

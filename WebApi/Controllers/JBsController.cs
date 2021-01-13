@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Tools;
 using WebApi.Data;
 using WebApi.Models;
 
@@ -15,11 +17,72 @@ namespace WebApi.Controllers
     public class JBsController : ControllerBase
     {
         private readonly JBContext _context;
+        private readonly Redis _redis;
 
-        public JBsController(JBContext context)
+        private static readonly object obj = new object();
+
+        public JBsController(JBContext context,Redis redis)
         {
             _context = context;
+            _redis = redis;
         }
+
+
+
+        [Route("Test2")]
+        [HttpPost]
+        public async Task<IActionResult> Test(string id, int number)
+        {
+            try
+            {
+                int redisStock = (int)_redis.StringGet(id);
+                if (redisStock == 0)
+                {
+                    return Ok(new { message = "秒杀结束！" });
+                }
+                long stock = _redis.StringDecrement(id, number);
+                if (stock < 0)
+                {
+                    redisStock = (int)_redis.StringGet(id);
+                    if (redisStock != 0 && redisStock < number)
+                    {
+                        _redis.StringIncrement(id, number);
+                    }
+                    else if (redisStock == 0)
+                    {
+                        await _redis.StringSetAsync(id, 0);
+                    }
+                    return Ok(new { message = "库存不足,秒杀结束！" });
+                }
+                return Ok(new { message = $"秒杀成功{number}个商品！" });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new {e.Message });
+            }
+            
+        }
+
+        [Route("Test")]
+        [HttpPost]
+        public  IActionResult Test(int id, int number)
+        {
+
+            lock (obj)
+            {
+                JB jB =  _context.JBs.Find(id);
+                if (jB.Num >= number)
+                {
+                    jB.Num -= number;
+                    _context.JBs.Update(jB);
+                    _context.SaveChanges();
+                    return Ok(jB);
+                }
+            }
+            return NotFound();
+        }
+
+
 
         // GET: api/JBs
         [HttpGet]
