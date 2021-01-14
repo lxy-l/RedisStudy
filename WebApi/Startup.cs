@@ -32,7 +32,7 @@ namespace WebApi
             services.AddControllers();
 
             services.AddDbContext<JBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddSingleton<Redis>();
+            services.AddSingleton(new Redis());
 
             services.AddSwaggerGen(c =>
             {
@@ -46,10 +46,15 @@ namespace WebApi
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebApi v1"));
+
             }
 
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint($"/swagger/V1/swagger.json", "WebApi v1");
+                c.RoutePrefix = "";
+            });
             app.UseRouting();
 
             app.UseAuthorization();

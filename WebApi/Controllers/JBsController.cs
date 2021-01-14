@@ -41,7 +41,7 @@ namespace WebApi.Controllers
                     return Ok(new { message = "秒杀结束！" });
                 }
                 long stock = _redis.StringDecrement(id, number);
-                if (stock < 0)
+                if (stock < 0)                                
                 {
                     redisStock = (int)_redis.StringGet(id);
                     if (redisStock != 0 && redisStock < number)
