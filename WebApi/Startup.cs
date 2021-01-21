@@ -32,7 +32,7 @@ namespace WebApi
             services.AddControllers();
 
             services.AddDbContext<JBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddSingleton(new Redis());
+            services.AddSingleton(new Redis(Configuration.GetConnectionString("RedisConnection")));
 
             services.AddSwaggerGen(c =>
             {

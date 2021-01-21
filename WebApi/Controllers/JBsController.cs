@@ -33,34 +33,26 @@ namespace WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Test(string id, int number)
         {
-            try
+            int redisStock = (int)await _redis.StringGetAsync(id);
+            if (redisStock == 0)
             {
-                int redisStock = (int)_redis.StringGet(id);
-                if (redisStock == 0)
-                {
-                    return Ok(new { message = "秒杀结束！" });
-                }
-                long stock = _redis.StringDecrement(id, number);
-                if (stock < 0)                                
-                {
-                    redisStock = (int)_redis.StringGet(id);
-                    if (redisStock != 0 && redisStock < number)
-                    {
-                        _redis.StringIncrement(id, number);
-                    }
-                    else if (redisStock == 0)
-                    {
-                        await _redis.StringSetAsync(id, 0);
-                    }
-                    return Ok(new { message = "库存不足,秒杀结束！" });
-                }
-                return Ok(new { message = $"秒杀成功{number}个商品！" });
+                return Ok(new { message = "秒杀结束！" });
             }
-            catch (Exception e)
+            long stock = await _redis.StringDecrementAsync(id, number);
+            if (stock < 0)
             {
-                return BadRequest(new {e.Message });
+                redisStock = (int)await _redis.StringGetAsync(id);
+                if (redisStock != 0 && redisStock < number)
+                {
+                    await _redis.StringIncrementAsync(id, number);
+                }
+                else if (redisStock == 0)
+                {
+                    await _redis.StringSetAsync(id, 0);
+                }
+                return Ok(new { message = "库存不足,秒杀结束！" });
             }
-            
+            return Ok(new { message = $"秒杀成功{number}个商品！" });
         }
 
         [Route("Test")]
