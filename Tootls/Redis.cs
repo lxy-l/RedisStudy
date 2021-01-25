@@ -54,7 +54,7 @@ namespace Tools
 
         public async Task<long> StringDecrementAsync(RedisKey key, long value = 1, CommandFlags flags = CommandFlags.None)
         {
-            return await redisDb.StringIncrementAsync(key, value, flags);
+            return await redisDb.StringDecrementAsync(key, value, flags);
         }
 
         public long StringIncrement(RedisKey key, long value = 1, CommandFlags flags = CommandFlags.None)
