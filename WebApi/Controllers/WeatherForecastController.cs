@@ -37,8 +37,8 @@ namespace WebApi.Controllers
             stopwatch.Start();
             for (int i = 0; i < 100000; i++)
             {
-                _redis.StringSet(i.ToString(), rng.ToString());
-                _redis.Publish(i.ToString());
+                //_redis.redisDb.StringSetAsync(i.ToString(), rng.ToString()).ConfigureAwait(false);
+                _redis.redisDb.PublishAsync("Messages",i.ToString()).ConfigureAwait(false);
             }
             stopwatch.Stop();
             //var b= _redis.StringSet(num.ToString(), rng.ToString());
@@ -55,7 +55,11 @@ namespace WebApi.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            _redis.GetSubscriber();
+            _redis.subscriber.SubscribeAsync("Messages", (channel, message) =>
+            {
+                Console.WriteLine(channel + ":" + message);
+            }).ConfigureAwait(false);
+
             return Ok();
         }   
     }

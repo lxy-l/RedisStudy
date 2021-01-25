@@ -33,22 +33,22 @@ namespace WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Test(string id, int number)
         {
-            int redisStock = (int)await _redis.StringGetAsync(id);
+            int redisStock = (int)await _redis.redisDb.StringGetAsync(id);
             if (redisStock == 0)
             {
                 return Ok(new { message = "秒杀结束！" });
             }
-            long stock = await _redis.StringDecrementAsync(id, number);
+            long stock = await _redis.redisDb.StringDecrementAsync(id, number);
             if (stock < 0)
             {
-                redisStock = (int)await _redis.StringGetAsync(id);
+                redisStock = (int)await _redis.redisDb.StringGetAsync(id);
                 if (redisStock != 0 && redisStock < number)
                 {
-                    await _redis.StringIncrementAsync(id, number);
+                    await _redis.redisDb.StringIncrementAsync(id, number);
                 }
                 else if (redisStock == 0)
                 {
-                    await _redis.StringSetAsync(id, 0);
+                    await _redis.redisDb.StringSetAsync(id, 0);
                 }
                 return Ok(new { message = "库存不足,秒杀结束！" });
             }

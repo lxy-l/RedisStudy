@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +33,18 @@ namespace WebApi
             services.AddControllers();
 
             services.AddDbContext<JBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddSingleton(new Redis(Configuration.GetConnectionString("RedisConnection")));
+
+            var config = new ConfigurationOptions
+            {
+                AbortOnConnectFail = false,
+                AllowAdmin = true,
+                ConnectTimeout = 15000,
+                SyncTimeout = 5000,
+                Password = "Pwd",
+                EndPoints = { Configuration.GetConnectionString("RedisConnection") }
+            };
+
+            services.AddSingleton(new Redis(config));
 
             services.AddSwaggerGen(c =>
             {
