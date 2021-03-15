@@ -52,6 +52,7 @@ namespace WebApi.Controllers
                 }
                 return Ok(new { message = "库存不足,秒杀结束！" });
             }
+            //加入队列
             return Ok(new { message = $"秒杀成功{number}个商品！" });
         }
 

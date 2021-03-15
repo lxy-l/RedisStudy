@@ -10,9 +10,13 @@ namespace WebApi.Models
     {
         [Key]
         public int Id { get; set; }
-
+        /// <summary>
+        /// 名字
+        /// </summary>
         public string Name { get; set; }
-
+        /// <summary>
+        /// 库存
+        /// </summary>
         public int Num { get; set; }
     }
 }
