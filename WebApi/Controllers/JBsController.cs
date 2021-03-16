@@ -46,13 +46,14 @@ namespace WebApi.Controllers
                 {
                     await _redis.redisDb.StringIncrementAsync(id, number);
                 }
-                else if (redisStock == 0)
+                else if (redisStock == 0)                       
                 {
                     await _redis.redisDb.StringSetAsync(id, 0);
                 }
                 return Ok(new { message = "库存不足,秒杀结束！" });
             }
             //加入队列
+            await _redis.redisDb.ListLeftPushAsync("People",number.ToString());
             return Ok(new { message = $"秒杀成功{number}个商品！" });
         }
 
