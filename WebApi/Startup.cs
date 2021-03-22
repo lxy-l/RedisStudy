@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Tools;
 using WebApi.Data;
+using WebApi.Services;
 
 namespace WebApi
 {
@@ -44,7 +45,11 @@ namespace WebApi
                 EndPoints = { Configuration.GetConnectionString("RedisConnection") }
             };
 
+            services.AddScoped<JBService>();
+
             services.AddSingleton(new Redis(config));
+
+            services.AddHostedService<Queue>();
 
             services.AddSwaggerGen(c =>
             {

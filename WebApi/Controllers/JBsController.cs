@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Tools;
 using WebApi.Data;
 using WebApi.Models;
+using WebApi.Services;
 
 namespace WebApi.Controllers
 {
@@ -18,25 +19,36 @@ namespace WebApi.Controllers
     {
         private readonly JBContext _context;
         private readonly Redis _redis;
+        private readonly JBService _jbservice;
 
         private static readonly object obj = new object();
 
-        public JBsController(JBContext context,Redis redis)
+        public JBsController(JBContext context,Redis redis,JBService jbService)
         {
             _context = context;
             _redis = redis;
+            _jbservice = jbService;
+        }
+
+        [HttpPost]
+        [Route(nameof(SetRedisStock))]
+        public void SetRedisStock()
+        {
+            foreach (var item in _context.JBs.ToList())
+            {
+                _redis.redisDb.StringSet(item.Id.ToString(), item.Num);
+            }
         }
 
 
-
-        [Route("Test2")]
+        [Route(nameof(RedisTest))]
         [HttpPost]
-        public async Task<IActionResult> Test(string id, int number)
+        public async Task<IActionResult> RedisTest(string id, int number)
         {
             int redisStock = (int)await _redis.redisDb.StringGetAsync(id);
             if (redisStock == 0)
             {
-                return Ok(new { message = "秒杀结束！" });
+                return NotFound(new { message = "秒杀结束！" });
             }
             long stock = await _redis.redisDb.StringDecrementAsync(id, number);
             if (stock < 0)
@@ -50,32 +62,46 @@ namespace WebApi.Controllers
                 {
                     await _redis.redisDb.StringSetAsync(id, 0);
                 }
-                return Ok(new { message = "库存不足,秒杀结束！" });
+                return NotFound(new { message = "库存不足,秒杀结束！" });
             }
             //加入队列
-            await _redis.redisDb.ListLeftPushAsync("People",number.ToString());
+            await _redis.redisDb.ListLeftPushAsync("PeopleQueue", $"{id}-{number}");
             return Ok(new { message = $"秒杀成功{number}个商品！" });
         }
 
-        [Route("Test")]
+        [Route(nameof(LockDBTest))]
         [HttpPost]
-        public  IActionResult Test(int id, int number)
+        public  IActionResult LockDBTest(int id, int number)
         {
 
             lock (obj)
             {
-                JB jB =  _context.JBs.Find(id);
-                if (jB.Num >= number)
+                JB jB = _jbservice.ReduceStockAsync(id, number).Result;
+                if (jB!=null)
                 {
-                    jB.Num -= number;
-                    _context.JBs.Update(jB);
-                    _context.SaveChanges();
                     return Ok(jB);
                 }
+                else
+                {
+                    return NotFound();
+                }
             }
-            return NotFound();
         }
 
+        [Route(nameof(DBTest))]
+        [HttpPost]
+        public IActionResult DBTest(int id, int number)
+        {
+            JB jB = _jbservice.ReduceStockAsync(id, number).Result;
+            if (jB != null)
+            {
+                return Ok(jB);
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
 
 
         // GET: api/JBs
