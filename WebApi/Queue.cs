@@ -19,9 +19,12 @@ namespace Tools
     public class Queue : BackgroundService
     {
 
-        private readonly JBService _jbservice;
+        //private readonly JBService _jbservice;
         private readonly Redis _redis;
         private readonly IConfiguration _Configuration;
+
+        //contenx问题 todo
+        private readonly JBContext _context;
 
         public Queue(Redis redis, IConfiguration Configuration)
         {
@@ -29,7 +32,8 @@ namespace Tools
             _Configuration = Configuration;
             var optionsBuilder = new DbContextOptionsBuilder<JBContext>();
             optionsBuilder.UseSqlServer(_Configuration.GetConnectionString("DefaultConnection"));
-            _jbservice = new JBService(new JBContext(optionsBuilder.Options));
+            _context = new JBContext(optionsBuilder.Options);
+            //_jbservice = new JBService(new JBContext(optionsBuilder.Options));
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -46,18 +50,21 @@ namespace Tools
                     if (data.HasValue)
                     {
                         var param = data.ToString().Split('-');
-                        Console.WriteLine(data);
                         try
                         {
-                            JB jB = _jbservice.ReduceStock(int.Parse(param[0]), int.Parse(param[1]));
-                            if (jB != null)
+                            JB jb = _context.JBs.Find(int.Parse(param[0]));
+                            if (jb.Num >= int.Parse(param[1]))
                             {
-                                Console.WriteLine($"库存减少成功:" + jB.Num);
+                                jb.Num -= int.Parse(param[1]);
+                                _context.JBs.Update(jb);
+                                _context.SaveChanges();
+                                Console.WriteLine("扣除数量成功，当前库存剩余：" + jb.Num);
                             }
                             else
                             {
-                                Console.Error.WriteLine($"库存减少失败");
+                                Console.WriteLine("库存不足！当前库存剩余：" + jb.Num);
                             }
+                            //_jbservice.ReduceStock(int.Parse(param[0]), int.Parse(param[1]));
                         }
                         catch (Exception e)
                         {

@@ -33,13 +33,16 @@ namespace WebApi.Services
             lock (obj)
             {
                 JB jb = _context.JBs.Find(id);
+                System.Console.WriteLine();
                 if (jb.Num >= number)
                 {
                     jb.Num -= number;
                     _context.JBs.Update(jb);
                     _context.SaveChanges();
+                    System.Console.WriteLine("扣除数量成功，当前库存剩余："+jb.Num);
                     return jb;
                 }
+                System.Console.WriteLine("库存不足！当前库存剩余：" + jb.Num);
                 return null;
             }
         }
