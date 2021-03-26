@@ -8,22 +8,40 @@ namespace WebApi.Services
     {
         private readonly JBContext _context;
 
+        private readonly object obj = new object();
+
         public JBService(JBContext context)
         {
             _context = context;
         }
 
-        public async Task<JB>  ReduceStockAsync(int id,int number)
+        //public async Task<JB>  ReduceStockAsync(int id,int number)
+        //{
+        //    JB jB = await _context.JBs.FindAsync(id);
+        //    if (jB.Num >= number)
+        //    {
+        //        jB.Num -= number;
+        //        _context.JBs.Update(jB);
+        //        await _context.SaveChangesAsync().ConfigureAwait(false);
+        //        return jB;
+        //    }
+        //    return null;
+        //}
+
+        public JB ReduceStock(int id ,int number)
         {
-            JB jB = await _context.JBs.FindAsync(id);
-            if (jB.Num >= number)
+            lock (obj)
             {
-                jB.Num -= number;
-                _context.JBs.Update(jB);
-                await _context.SaveChangesAsync().ConfigureAwait(false);
-                return jB;
+                JB jb = _context.JBs.Find(id);
+                if (jb.Num >= number)
+                {
+                    jb.Num -= number;
+                    _context.JBs.Update(jb);
+                    _context.SaveChanges();
+                    return jb;
+                }
+                return null;
             }
-            return null;
         }
 
     }

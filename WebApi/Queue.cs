@@ -35,7 +35,7 @@ namespace Tools
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
 
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
                 //List<string> orderlist = new List<string>();
                 //Stopwatch stopwatch = new Stopwatch();
@@ -46,20 +46,26 @@ namespace Tools
                     if (data.HasValue)
                     {
                         var param = data.ToString().Split('-');
-                        Console.WriteLine(param);
-                        JB jB = await _jbservice.ReduceStockAsync(int.Parse(param[0]), int.Parse(param[1]));
-                        if (jB != null)
+                        Console.WriteLine(data);
+                        try
                         {
-                            Console.WriteLine($"库存减少成功:" + jB.Num);
+                            JB jB = _jbservice.ReduceStock(int.Parse(param[0]), int.Parse(param[1]));
+                            if (jB != null)
+                            {
+                                Console.WriteLine($"库存减少成功:" + jB.Num);
+                            }
+                            else
+                            {
+                                Console.Error.WriteLine($"库存减少失败");
+                            }
                         }
-                        else
+                        catch (Exception e)
                         {
-                            Console.WriteLine($"库存减少失败");
+                            Console.Error.WriteLine(e.Message);
                         }
                     }
                     else
                     {
-                        Console.WriteLine("队列为空，休眠一秒");
                         Thread.Sleep(1000);
                     }
 

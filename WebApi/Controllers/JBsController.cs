@@ -76,7 +76,7 @@ namespace WebApi.Controllers
 
             lock (obj)
             {
-                JB jB = _jbservice.ReduceStockAsync(id, number).Result;
+                JB jB = _jbservice.ReduceStock(id, number);
                 if (jB!=null)
                 {
                     return Ok(jB);
@@ -92,7 +92,7 @@ namespace WebApi.Controllers
         [HttpPost]
         public IActionResult DBTest(int id, int number)
         {
-            JB jB = _jbservice.ReduceStockAsync(id, number).Result;
+            JB jB = _jbservice.ReduceStock(id, number);
             if (jB != null)
             {
                 return Ok(jB);
