@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WebApi.Data;
@@ -19,112 +20,56 @@ namespace Tools
     public class Queue : BackgroundService
     {
 
-        //private readonly JBService _jbservice;
         private readonly Redis _redis;
-        private readonly IConfiguration _Configuration;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        //contenx问题 todo
-        private readonly JBContext _context;
-
-        public Queue(Redis redis, IConfiguration Configuration)
+        public Queue(Redis redis,IServiceScopeFactory serviceScopeFactory)
         {
             _redis = redis;
-            _Configuration = Configuration;
-            var optionsBuilder = new DbContextOptionsBuilder<JBContext>();
-            optionsBuilder.UseSqlServer(_Configuration.GetConnectionString("DefaultConnection"));
-            _context = new JBContext(optionsBuilder.Options);
-            //_jbservice = new JBService(new JBContext(optionsBuilder.Options));
+            _serviceScopeFactory = serviceScopeFactory;
         }
+
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
-                //List<string> orderlist = new List<string>();
-                //Stopwatch stopwatch = new Stopwatch();
-                //stopwatch.Start();
-                while (true)
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    var data = _redis.redisDb.ListRightPopAsync("PeopleQueue").Result;
-                    if (data.HasValue)
+                    await _redis.redisDb.ListRightPopAsync("PeopleQueue").ContinueWith(task =>
                     {
-                        var param = data.ToString().Split('-');
-                        try
+                        if (task.Result.HasValue)
                         {
-                            JB jb = _context.JBs.Find(int.Parse(param[0]));
-                            if (jb.Num >= int.Parse(param[1]))
+                            int[] param = Array.ConvertAll(task.Result.ToString().Split('-'), s => int.Parse(s));
+                            if (HandleData(param))
                             {
-                                jb.Num -= int.Parse(param[1]);
-                                _context.JBs.Update(jb);
-                                _context.SaveChanges();
-                                Console.WriteLine("扣除数量成功，当前库存剩余：" + jb.Num);
+                                Console.WriteLine("成功出队：" + task.Result);
                             }
                             else
                             {
-                                Console.WriteLine("库存不足！当前库存剩余：" + jb.Num);
+                                _redis.redisDb.ListLeftPushAsync("PeopleQueue", task.Result);
+                                Console.WriteLine("出列失败，返回队列中");
                             }
-                            //_jbservice.ReduceStock(int.Parse(param[0]), int.Parse(param[1]));
+                           
                         }
-                        catch (Exception e)
+                        else
                         {
-                            Console.Error.WriteLine(e.Message);
+                            Console.WriteLine("休眠2秒");
+                            Thread.Sleep(2000);
                         }
-                    }
-                    else
-                    {
-                        Thread.Sleep(1000);
-                    }
 
-                    //try
-                    //{
-                    //    var data =  _redis.redisDb.ListRightPopAsync("PeopleQueue").Result;
-
-                    //    if (data.HasValue)
-                    //    {
-                    //        orderlist.Add(data);
-                    //    }
-                    //    else
-                    //    {
-                    //        Console.WriteLine("队列为空，休眠一秒");
-                    //        Thread.Sleep(2000);
-                    //    }
-                    //    if (orderlist.Count >= 5 || stopwatch.ElapsedMilliseconds > 1000)
-                    //    {
-                    //        if (orderlist.Count > 0)
-                    //        {
-                    //            try
-                    //            {
-                    //                //foreach (var item in orderlist)
-                    //                //{
-                    //                //    var param = item.Split('-');
-                    //                //    JB jB = await _jbservice.ReduceStockAsync(int.Parse(param[0]),int.Parse(param[1]));
-                    //                //    if (jB != null)
-                    //                //    {
-                    //                //        Console.WriteLine($"库存减少成功:" + jB);
-                    //                //        orderlist.Clear();
-                    //                //    }
-                    //                //    else
-                    //                //    {
-                    //                //        Console.WriteLine($"库存减少失败");
-                    //                //    }
-                    //                //}
-                    //            }
-                    //            catch (Exception ex)
-                    //            {
-                    //                Console.WriteLine($"出列失败:{ex.Message}");
-                    //            }
-                    //        }
-                    //        stopwatch.Restart();
-                    //    }
-
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    Console.WriteLine($"执行失败：{ex.Message}");
-                    //}
+                    }, stoppingToken);
                 }
-            }, stoppingToken);
+            });
+        }
+
+        private bool HandleData(int[] param)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                JBService _jbservice = scope.ServiceProvider.GetRequiredService<JBService>();
+                return _jbservice.ReduceStock(param[0], param[1])!=null;
+            }
         }
     }
 }

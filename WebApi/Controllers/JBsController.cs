@@ -30,17 +30,6 @@ namespace WebApi.Controllers
             _jbservice = jbService;
         }
 
-        [HttpPost]
-        [Route(nameof(SetRedisStock))]
-        public void SetRedisStock()
-        {
-            foreach (var item in _context.JBs.ToList())
-            {
-                _redis.redisDb.StringSet(item.Id.ToString(), item.Num);
-            }
-        }
-
-
         [Route(nameof(RedisTest))]
         [HttpPost]
         public async Task<IActionResult> RedisTest(string id, int number)
@@ -108,7 +97,12 @@ namespace WebApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<JB>>> GetJBs()
         {
-            return await _context.JBs.ToListAsync();
+            var list = await _context.JBs.ToListAsync();
+            foreach (var item in list)
+            {
+                _redis.redisDb.StringSet(item.Id.ToString(), item.Num);
+            }
+            return list;
         }
 
         // GET: api/JBs/5
