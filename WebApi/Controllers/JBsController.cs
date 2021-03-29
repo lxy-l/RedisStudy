@@ -133,7 +133,13 @@ namespace WebApi.Controllers
 
             try
             {
-                await _context.SaveChangesAsync();
+                
+               
+                if (await _context.SaveChangesAsync() == 1)
+                {
+                    ////更新redis缓存
+                    _redis.redisDb.StringSet(jB.Id.ToString(), jB.Num);
+                }
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -156,7 +162,12 @@ namespace WebApi.Controllers
         public async Task<ActionResult<JB>> PostJB(JB jB)
         {
             _context.JBs.Add(jB);
-            await _context.SaveChangesAsync();
+           
+            if (await _context.SaveChangesAsync() == 1)
+            {
+                ////更新redis缓存
+                _redis.redisDb.StringSet(jB.Id.ToString(), jB.Num);
+            }
 
             return CreatedAtAction("GetJB", new { id = jB.Id }, jB);
         }
@@ -172,7 +183,12 @@ namespace WebApi.Controllers
             }
 
             _context.JBs.Remove(jB);
-            await _context.SaveChangesAsync();
+           
+            if (await _context.SaveChangesAsync() == 1)
+            {
+                 //删除redis缓存
+                _redis.redisDb.KeyDelete(jB.Id.ToString());
+            }
 
             return NoContent();
         }

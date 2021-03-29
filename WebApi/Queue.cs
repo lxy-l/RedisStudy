@@ -1,22 +1,13 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WebApi.Data;
-using WebApi.Models;
 using WebApi.Services;
 
 namespace Tools
 {
-   
+
     public class Queue : BackgroundService
     {
 
@@ -63,6 +54,14 @@ namespace Tools
             });
         }
 
+
+        /**
+         * 由_serviceScopeFactory.CreateScope()创建的外部scope在每个using语句之后被释放，
+         * 而每个消息仍然试图依赖现在已释放的作用域和附加的上下文来处理该消息。
+         * 
+         * 如果直接释放会出现下列问题：
+         * 1.System.ObjectDisposedException:'无法访问已释放的上下文实例。导致此错误的一个常见原因是释放从依赖注入解析的上下文实例，然后在应用程   序的其他地方尝试使用相同的上下文实例。如果对上下文实例调用“Dispose”，或将其包装在using语句中，则可能会发生这种情况。如果使用       依赖注    入，则应该让依赖注入容器负责处理上下文实例。对象名：'IntegrationDbContext'
+         * **/
         private bool HandleData(int[] param)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
