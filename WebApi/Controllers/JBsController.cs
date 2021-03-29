@@ -19,11 +19,11 @@ namespace WebApi.Controllers
     {
         private readonly JBContext _context;
         private readonly Redis _redis;
-        private readonly JBService _jbservice;
+        private readonly IJBService _jbservice;
 
         private static readonly object obj = new object();
 
-        public JBsController(JBContext context,Redis redis,JBService jbService)
+        public JBsController(JBContext context,Redis redis, IJBService jbService)
         {
             _context = context;
             _redis = redis;

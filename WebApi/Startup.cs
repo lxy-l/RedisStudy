@@ -45,7 +45,7 @@ namespace WebApi
                 EndPoints = { Configuration.GetConnectionString("RedisConnection") }
             };
 
-            services.AddScoped<JBService>();
+            services.AddScoped<IJBService,JBService>();
 
             services.AddSingleton(new Redis(config));
 
