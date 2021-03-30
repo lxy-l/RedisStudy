@@ -32,6 +32,7 @@ namespace Tools
                         if (task.Result.HasValue)
                         {
                             int[] param = Array.ConvertAll(task.Result.ToString().Split('-'), s => int.Parse(s));
+                            Console.WriteLine(param[0]);
                             if (HandleData(param))
                             {
                                 Console.WriteLine("成功出队：" + task.Result);
@@ -45,8 +46,8 @@ namespace Tools
                         }
                         else
                         {
-                            Console.WriteLine("休眠2秒");
-                            Thread.Sleep(2000);
+                            Console.WriteLine("休眠15秒");
+                            Thread.Sleep(15000);
                         }
 
                     }, stoppingToken);
@@ -66,7 +67,7 @@ namespace Tools
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
-                JBService _jbservice = scope.ServiceProvider.GetRequiredService<JBService>();
+                IJBService _jbservice = scope.ServiceProvider.GetRequiredService<IJBService>();
                 return _jbservice.ReduceStock(param[0], param[1])!=null;
             }
         }
