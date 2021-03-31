@@ -16,7 +16,7 @@ namespace WebApi.Migrations
             modelBuilder
                 .UseIdentityColumns()
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.1");
+                .HasAnnotation("ProductVersion", "5.0.2");
 
             modelBuilder.Entity("WebApi.Models.JB", b =>
                 {
@@ -34,6 +34,27 @@ namespace WebApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("JBs");
+                });
+
+            modelBuilder.Entity("WebApi.Models.Order", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .UseIdentityColumn();
+
+                    b.Property<int>("Num")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShopId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Uid")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Orders");
                 });
 #pragma warning restore 612, 618
         }

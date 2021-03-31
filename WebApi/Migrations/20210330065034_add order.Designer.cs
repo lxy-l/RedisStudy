@@ -9,8 +9,8 @@ using WebApi.Data;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(JBContext))]
-    [Migration("20210112072824_Init")]
-    partial class Init
+    [Migration("20210330065034_add order")]
+    partial class addorder
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -18,7 +18,7 @@ namespace WebApi.Migrations
             modelBuilder
                 .UseIdentityColumns()
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.1");
+                .HasAnnotation("ProductVersion", "5.0.2");
 
             modelBuilder.Entity("WebApi.Models.JB", b =>
                 {
@@ -36,6 +36,27 @@ namespace WebApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("JBs");
+                });
+
+            modelBuilder.Entity("WebApi.Models.Order", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .UseIdentityColumn();
+
+                    b.Property<int>("Num")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShopId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Uid")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Orders");
                 });
 #pragma warning restore 612, 618
         }
