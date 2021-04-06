@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Tools
 {
@@ -12,6 +9,7 @@ namespace Tools
     /// </summary>
     public class EncyptHelper
     {
+
         #region MD5加密
         /// <summary>
         /// MD5加密
@@ -82,7 +80,7 @@ namespace Tools
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public string RSADecrypt(string value, string privateKey)
+        public static string RSADecrypt(string value, string privateKey)
         {
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
             rsa.FromXmlString(privateKey);
@@ -95,7 +93,7 @@ namespace Tools
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public string RSAEncrypt(string value, string publicKey)
+        public static string RSAEncrypt(string value, string publicKey)
         {
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
             rsa.FromXmlString(publicKey);

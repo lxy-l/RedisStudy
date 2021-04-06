@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Tools;
 
 namespace WebApi.Controllers
 {
@@ -18,6 +19,12 @@ namespace WebApi.Controllers
         [HttpGet]
         public string Get()
         {
+       
+            var key= EncyptHelper.CreateKey();
+            string txt = "asdfasdfasdfasdf";
+            string content = EncyptHelper.RSAEncrypt(txt,key.publicKey);
+            string value3 = EncyptHelper.RSADecrypt(content, key.privateKey);
+
             var processName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
             return "进程名字是："+processName;
         }
