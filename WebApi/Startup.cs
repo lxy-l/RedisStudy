@@ -41,7 +41,6 @@ namespace WebApi
                 AllowAdmin = true,
                 ConnectTimeout = 15000,
                 SyncTimeout = 5000,
-                Password = "Pwd",
                 EndPoints = { Configuration.GetConnectionString("RedisConnection") }
             };
 

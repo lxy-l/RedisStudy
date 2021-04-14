@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
 using Tools;
 using WebApi.Data;
 using WebApi.Models;
@@ -29,7 +31,6 @@ namespace WebApi.Controllers
             _redis = redis;
             _jbservice = jbService;
         }
-
         [Route(nameof(RedisTest))]
         [HttpPost]
         public async Task<IActionResult> RedisTest(string id, int number)
@@ -92,16 +93,52 @@ namespace WebApi.Controllers
             }
         }
 
-
-        // GET: api/JBs
+        [Route(nameof(SetData))]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<JB>>> GetJBs()
+        public IActionResult SetData()
         {
-            var list = await _context.JBs.ToListAsync();
-            foreach (var item in list)
+            List<JB> list = new List<JB>();
+            for (int i = 1; i <= 1000000; i++)
             {
-                _redis.redisDb.StringSet(item.Id.ToString(), item.Num);
+                list.Add(new JB {Name=i.ToString(),Num=100000 });
             }
+            _context.JBs.AddRange(list);
+            int count=_context.SaveChanges();
+            if (count==1000000)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+
+        [Route(nameof(GetJBsRedis))]
+        [HttpGet]
+        public IEnumerable<JB> GetJBsRedis(int pageIndex,int pageSize)
+        {
+            IEnumerable<JB> list = null;
+            if (_redis.redisDb.KeyExists("WebApi:JBListString"))
+            {
+                string str = _redis.redisDb.StringGet("WebApi:JBListString");
+                 list = JsonConvert.DeserializeObject<IEnumerable<JB>>(str);
+            }
+            else
+            {
+                 list =  _context.JBs.ToList();
+                 var liststr = JsonConvert.SerializeObject(list);
+                _redis.redisDb.StringSet("WebApi:JBListString", liststr);
+            }
+            return list.Skip(pageSize * (pageIndex - 1)).Take(pageSize);
+        }
+
+        [Route(nameof(GetJBs))]
+        [HttpGet]
+        public IEnumerable<JB> GetJBs(int pageIndex, int pageSize)
+        {
+            IEnumerable<JB> list = _context.JBs.Skip(pageSize * (pageIndex - 1)).Take(pageSize).ToList();
             return list;
         }
 
