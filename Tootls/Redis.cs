@@ -19,7 +19,7 @@ namespace Tools
         public Redis(ConfigurationOptions config)
         {
             ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(config);
-            redisDb = redis.GetDatabase(1);
+            redisDb = redis.GetDatabase();
             subscriber = redis.GetSubscriber();
         }
 

@@ -31,6 +31,8 @@ namespace WebApi.Controllers
             _redis = redis;
             _jbservice = jbService;
         }
+
+
         [Route(nameof(RedisTest))]
         [HttpPost]
         public async Task<IActionResult> RedisTest(string id, int number)
@@ -97,48 +99,53 @@ namespace WebApi.Controllers
         [HttpGet]
         public IActionResult SetData()
         {
-            List<JB> list = new List<JB>();
-            for (int i = 1; i <= 1000000; i++)
+            if (!_context.JBs.Any())
             {
-                list.Add(new JB {Name=i.ToString(),Num=100000 });
+                List<JB> list = new List<JB>();
+                for (int i = 1; i <= 1000000; i++)
+                {
+                    list.Add(new JB { Name = i.ToString(), Num = 100000 });
+                }
+                _context.JBs.AddRange(list);
+                int count = _context.SaveChanges();
+                if (count == 1000000)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return NoContent();
+                }
             }
-            _context.JBs.AddRange(list);
-            int count=_context.SaveChanges();
-            if (count==1000000)
+            return Ok();
+
+        }
+
+        [Route(nameof(SetRedisCache))]
+        [HttpGet]
+        public IActionResult SetRedisCache()
+        {
+            IEnumerable<JB> list = _context.JBs.ToList();
+            foreach (var item in list)
             {
-                return Ok();
+                //await _redis.redisDb.StringSet(item);
             }
-            else
-            {
-                return BadRequest();
-            }
+            return Ok();
         }
 
 
-        [Route(nameof(GetJBsRedis))]
+        [Route(nameof(GetJBsRedisAsync))]
         [HttpGet]
-        public IEnumerable<JB> GetJBsRedis(int pageIndex,int pageSize)
+        public async Task<IEnumerable<JB>> GetJBsRedisAsync(int pageIndex,int pageSize)
         {
-            IEnumerable<JB> list = null;
-            if (_redis.redisDb.KeyExists("WebApi:JBListString"))
-            {
-                string str = _redis.redisDb.StringGet("WebApi:JBListString");
-                 list = JsonConvert.DeserializeObject<IEnumerable<JB>>(str);
-            }
-            else
-            {
-                 list =  _context.JBs.ToList();
-                 var liststr = JsonConvert.SerializeObject(list);
-                _redis.redisDb.StringSet("WebApi:JBListString", liststr);
-            }
-            return list.Skip(pageSize * (pageIndex - 1)).Take(pageSize);
+            return null;
         }
 
         [Route(nameof(GetJBs))]
         [HttpGet]
         public IEnumerable<JB> GetJBs(int pageIndex, int pageSize)
         {
-            IEnumerable<JB> list = _context.JBs.Skip(pageSize * (pageIndex - 1)).Take(pageSize).ToList();
+            IEnumerable<JB> list = _context.JBs.OrderBy(x=>x.Id).Skip(pageSize * (pageIndex - 1)).Take(pageSize).ToList();
             return list;
         }
 

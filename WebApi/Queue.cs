@@ -46,8 +46,8 @@ namespace Tools
                         }
                         else
                         {
-                            Console.WriteLine("休眠15秒");
-                            Thread.Sleep(15000);
+                            Console.WriteLine("休眠5秒");
+                            Thread.Sleep(5000);
                         }
 
                     }, stoppingToken);
