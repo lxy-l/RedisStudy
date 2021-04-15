@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Tools;
@@ -30,11 +31,6 @@ namespace WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-            services.AddControllers();
-
-            services.AddDbContext<JBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-
             var config = new ConfigurationOptions
             {
                 AbortOnConnectFail = false,
@@ -43,6 +39,11 @@ namespace WebApi
                 SyncTimeout = 5000,
                 EndPoints = { Configuration.GetConnectionString("RedisConnection") }
             };
+            var basePath = AppDomain.CurrentDomain.BaseDirectory;
+
+            services.AddControllers();
+
+            services.AddDbContext<JBContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddScoped<IJBService,JBService>();
 
@@ -53,6 +54,9 @@ namespace WebApi
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApi", Version = "v1" });
+                c.OrderActionsBy(o => o.RelativePath);
+                var xmlPath = Path.Combine(basePath, "WebApi.xml");
+                c.IncludeXmlComments(xmlPath, true);
             });
         }
 
