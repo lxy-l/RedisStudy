@@ -32,7 +32,12 @@ namespace WebApi.Controllers
             _jbservice = jbService;
         }
 
-
+        /// <summary>
+        /// 秒杀接口（Redis）
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="number"></param>
+        /// <returns></returns>
         [Route(nameof(RedisTest))]
         [HttpPost]
         public async Task<IActionResult> RedisTest(string id, int number)
@@ -61,6 +66,12 @@ namespace WebApi.Controllers
             return Ok(new { message = $"秒杀成功{number}个商品！" });
         }
 
+        /// <summary>
+        /// 秒杀接口（数据库有锁）
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="number"></param>
+        /// <returns></returns>
         [Route(nameof(LockDBTest))]
         [HttpPost]
         public  IActionResult LockDBTest(int id, int number)
@@ -80,6 +91,12 @@ namespace WebApi.Controllers
             }
         }
 
+        /// <summary>
+        /// 秒杀接口（数据库无锁）
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="number"></param>
+        /// <returns></returns>
         [Route(nameof(DBTest))]
         [HttpPost]
         public IActionResult DBTest(int id, int number)
@@ -95,6 +112,10 @@ namespace WebApi.Controllers
             }
         }
 
+        /// <summary>
+        /// 添加100万数据到数据库
+        /// </summary>
+        /// <returns></returns>
         [Route(nameof(SetData))]
         [HttpGet]
         public IActionResult SetData()
@@ -121,6 +142,10 @@ namespace WebApi.Controllers
 
         }
 
+        /// <summary>
+        /// 设置缓存数据
+        /// </summary>
+        /// <returns></returns>
         [Route(nameof(SetRedisCache))]
         [HttpGet]
         public IActionResult SetRedisCache()
@@ -133,7 +158,12 @@ namespace WebApi.Controllers
             return Ok();
         }
 
-
+        /// <summary>
+        /// 获取JB列表（缓存）
+        /// </summary>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
         [Route(nameof(GetJBsRedisAsync))]
         [HttpGet]
         public async Task<IEnumerable<JB>> GetJBsRedisAsync(int pageIndex,int pageSize)
@@ -141,6 +171,12 @@ namespace WebApi.Controllers
             return null;
         }
 
+        /// <summary>
+        /// 获取JB列表（数据库）
+        /// </summary>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
         [Route(nameof(GetJBs))]
         [HttpGet]
         public IEnumerable<JB> GetJBs(int pageIndex, int pageSize)
@@ -149,7 +185,11 @@ namespace WebApi.Controllers
             return list;
         }
 
-        // GET: api/JBs/5
+        /// <summary>
+        /// 获取单个JB对象
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<JB>> GetJB(int id)
         {
@@ -163,8 +203,12 @@ namespace WebApi.Controllers
             return jB;
         }
 
-        // PUT: api/JBs/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// 修改JB对象
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="jB"></param>
+        /// <returns></returns>
         [HttpPut("{id}")]
         public async Task<IActionResult> PutJB(int id, JB jB)
         {
@@ -200,8 +244,11 @@ namespace WebApi.Controllers
             return NoContent();
         }
 
-        // POST: api/JBs
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// 添加JB对象
+        /// </summary>
+        /// <param name="jB"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<ActionResult<JB>> PostJB(JB jB)
         {
@@ -216,7 +263,11 @@ namespace WebApi.Controllers
             return CreatedAtAction("GetJB", new { id = jB.Id }, jB);
         }
 
-        // DELETE: api/JBs/5
+        /// <summary>
+        /// 删除JB对象
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteJB(int id)
         {
@@ -237,6 +288,11 @@ namespace WebApi.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// 判断是否存在JB对象
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         private bool JBExists(int id)
         {
             return _context.JBs.Any(e => e.Id == id);
