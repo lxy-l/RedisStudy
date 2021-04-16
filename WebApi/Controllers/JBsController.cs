@@ -166,7 +166,7 @@ namespace WebApi.Controllers
         /// <returns></returns>
         [Route(nameof(GetJBsRedisAsync))]
         [HttpGet]
-        public async Task<IEnumerable<JB>> GetJBsRedisAsync(int pageIndex,int pageSize)
+        public IEnumerable<JB> GetJBsRedisAsync(int pageIndex,int pageSize)
         {
             return null;
         }
