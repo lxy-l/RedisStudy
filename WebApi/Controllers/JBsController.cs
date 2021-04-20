@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
+using StackExchange.Redis;
 using Tools;
 using WebApi.Data;
 using WebApi.Models;
@@ -137,7 +138,7 @@ namespace WebApi.Controllers
                 {
                     return NoContent();
                 }
-            }
+            }   
             return Ok();
 
         }
@@ -151,10 +152,13 @@ namespace WebApi.Controllers
         public IActionResult SetRedisCache()
         {
             IEnumerable<JB> list = _context.JBs.ToList();
+            List<RedisValue> listRedisValue = new List<RedisValue>();
             foreach (var item in list)
             {
-                //await _redis.redisDb.StringSet(item);
+                string json = JsonConvert.SerializeObject(item);
+                listRedisValue.Add(json);
             }
+            _redis.redisDb.SetAddAsync("JbSet", listRedisValue.ToArray());
             return Ok();
         }
 
@@ -168,7 +172,23 @@ namespace WebApi.Controllers
         [HttpGet]
         public IEnumerable<JB> GetJBsRedisAsync(int pageIndex,int pageSize)
         {
-            return null;
+            List<JB> result = new List<JB>();
+            if (_redis.redisDb.SetLength("JbSet")>0)
+            {
+                var arr = _redis.redisDb.SetMembers("JbSet");
+                foreach (var item in arr)
+                {
+                    if (!item.IsNullOrEmpty)
+                    {
+                        var t = JsonConvert.DeserializeObject<JB>(item);
+                        if (t != null)
+                        {
+                            result.Add(t);
+                        }
+                    }
+                }
+            }
+            return result.OrderBy(x=>x.Id).Skip(pageSize * (pageIndex - 1)).Take(pageSize);
         }
 
         /// <summary>

@@ -18,5 +18,10 @@ namespace WebApi.Models
         /// 库存
         /// </summary>
         public int Num { get; set; }
+
+        public override string ToString()
+        {
+            return Id+":"+Name+":"+Num;
+        }
     }
 }
