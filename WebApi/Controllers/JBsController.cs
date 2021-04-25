@@ -126,7 +126,7 @@ namespace WebApi.Controllers
                 List<JB> list = new List<JB>();
                 for (int i = 1; i <= 1000000; i++)
                 {
-                    list.Add(new JB { Name = i.ToString(), Num = 100000 });
+                    list.Add(new JB { Name = i.ToString(), Num =i});
                 }
                 _context.JBs.AddRange(list);
                 int count = _context.SaveChanges();
