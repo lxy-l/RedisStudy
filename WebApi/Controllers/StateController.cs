@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Tools;
 
 namespace WebApi.Controllers
@@ -7,21 +9,31 @@ namespace WebApi.Controllers
     [ApiController]
     public class StateController : ControllerBase
     {
+
+        private readonly IWebHostEnvironment _env;
+        private readonly IConfiguration _configuration;
+        public StateController(IWebHostEnvironment env, IConfiguration configuration)
+        {
+            _env = env;
+            _configuration = configuration;
+        }
         /// <summary>
         /// 获取进程名称
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public string Get()
+        public IActionResult Get()
         {
-       
-            var key= EncyptHelper.CreateKey();
-            string txt = "asdfasdfasdfasdf";
-            string content = EncyptHelper.RSAEncrypt(txt,key.publicKey);
-            string value3 = EncyptHelper.RSADecrypt(content, key.privateKey);
+            var json = new
+            {
+                processName = System.Diagnostics.Process.GetCurrentProcess().ProcessName,
+                redis = _configuration.GetConnectionString("RedisConnection"),
+                sqlserver = _configuration.GetConnectionString("DefaultConnection"),
+                evnname = _env.EnvironmentName
 
-            var processName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-            return "进程名字是："+processName;
+            };
+
+            return Ok(json);
         }
     }
 }
