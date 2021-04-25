@@ -187,8 +187,13 @@ namespace WebApi.Controllers
                         }
                     }
                 }
+                return result.OrderBy(x => x.Id).Skip(pageSize * (pageIndex - 1)).Take(pageSize);
             }
-            return result.OrderBy(x=>x.Id).Skip(pageSize * (pageIndex - 1)).Take(pageSize);
+            else
+            {
+                IEnumerable<JB> list = _context.JBs.OrderBy(x => x.Id).Skip(pageSize * (pageIndex - 1)).Take(pageSize).ToList();
+                return list;
+            }
         }
 
         /// <summary>
