@@ -24,7 +24,7 @@ namespace WebApi.Controllers
         private readonly Redis _redis;
         private readonly IJBService _jbservice;
 
-        private static readonly object obj = new object();
+        private static readonly object obj = new ();
 
         public JBsController(JBContext context,Redis redis, IJBService jbService)
         {
@@ -43,10 +43,11 @@ namespace WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> RedisTest(string id, int number)
         {
+            id = "ST:"+id;
             int redisStock = (int)await _redis.redisDb.StringGetAsync(id);
             if (redisStock == 0)
             {
-                return NotFound(new { message = "秒杀结束！" });
+                return Ok(new { message = "秒杀结束！" });
             }
             long stock = await _redis.redisDb.StringDecrementAsync(id, number);
             if (stock < 0)
@@ -60,7 +61,7 @@ namespace WebApi.Controllers
                 {
                     await _redis.redisDb.StringSetAsync(id, 0);
                 }
-                return NotFound(new { message = "库存不足,秒杀结束！" });
+                return Ok(new { message = "库存不足,秒杀结束！" });
             }
             //加入队列
             await _redis.redisDb.ListLeftPushAsync("PeopleQueue", $"{id}-{number}");
@@ -80,7 +81,7 @@ namespace WebApi.Controllers
 
             lock (obj)
             {
-                JB jB = _jbservice.ReduceStock(id, number);
+                JB? jB = _jbservice.ReduceStock(id, number);
                 if (jB!=null)
                 {
                     return Ok(jB);
@@ -102,7 +103,7 @@ namespace WebApi.Controllers
         [HttpPost]
         public IActionResult DBTest(int id, int number)
         {
-            JB jB = _jbservice.ReduceStock(id, number);
+            JB? jB = _jbservice.ReduceStock(id, number);
             if (jB != null)
             {
                 return Ok(jB);
@@ -123,7 +124,7 @@ namespace WebApi.Controllers
         {
             if (!_context.JBs.Any())
             {
-                List<JB> list = new List<JB>();
+                List<JB> list = new();
                 for (int i = 1; i <= 1000000; i++)
                 {
                     list.Add(new JB { Name = i.ToString(), Num =i});
@@ -147,18 +148,19 @@ namespace WebApi.Controllers
         /// 设置缓存数据
         /// </summary>
         /// <returns></returns>
-        [Route(nameof(SetRedisCache))]
+        [Route(nameof(SetRedisCacheAsync))]
         [HttpGet]
-        public IActionResult SetRedisCache()
+        public async Task<IActionResult> SetRedisCacheAsync()
         {
             IEnumerable<JB> list = _context.JBs.ToList();
-            List<RedisValue> listRedisValue = new List<RedisValue>();
+            List<RedisValue> listRedisValue = new();
             foreach (var item in list)
             {
+                await _redis.redisDb.StringSetAsync("ST:"+item.Id.ToString(), item.Num);
                 string json = JsonConvert.SerializeObject(item);
                 listRedisValue.Add(json);
             }
-            _redis.redisDb.SetAddAsync("JbSet", listRedisValue.ToArray());
+            await _redis.redisDb.SetAddAsync("JbSet", listRedisValue.ToArray());
             return Ok();
         }
 
@@ -172,7 +174,7 @@ namespace WebApi.Controllers
         [HttpGet]
         public IEnumerable<JB> GetJBsRedisAsync(int pageIndex,int pageSize)
         {
-            List<JB> result = new List<JB>();
+            List<JB> result = new();
             if (_redis.redisDb.SetLength("JbSet")>0)
             {
                 var arr = _redis.redisDb.SetMembers("JbSet");

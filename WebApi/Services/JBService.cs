@@ -12,7 +12,7 @@ namespace WebApi.Services
             _context = context;
         }
 
-        public JB ReduceStock(int id, int number)
+        public JB? ReduceStock(int id, int number)
         {
             JB jb = _context.JBs.Find(id);
             if (jb.Num >= number)
@@ -20,10 +20,10 @@ namespace WebApi.Services
                 jb.Num -= number;
                 _context.JBs.Update(jb);
                 _context.SaveChanges();
-                System.Console.WriteLine("扣除数量成功，当前库存剩余：" + jb.Num);
+                Console.WriteLine("扣除数量成功，当前库存剩余：" + jb.Num);
                 return jb;
             }
-            System.Console.WriteLine("库存不足！当前库存剩余：" + jb.Num);
+            Console.WriteLine("库存不足！当前库存剩余：" + jb.Num);
             return null;
         }
 

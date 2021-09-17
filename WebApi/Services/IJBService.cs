@@ -8,6 +8,6 @@ namespace WebApi.Services
 {
     public interface IJBService
     {
-        JB ReduceStock(int id, int number);
+        JB? ReduceStock(int id, int number);
     }
 }

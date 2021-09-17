@@ -79,13 +79,13 @@ namespace Tools
         /// <returns></returns>
         public object GetCache(string key)
         {
-            object value = null;
             // 通过key以字符串格式取值
             var redisValue = Db.StringGet(key);
             if (!redisValue.HasValue)
                 return null;
             // 执行JSON序列化
             ValueInfoEntity valueInfo = JsonConvert.DeserializeObject<ValueInfoEntity>(redisValue.ToString());
+            object value;
             // 判断值的类型，如果是字符串类型，直接调用value得到结果， 如果不是，接着使用它本身的类型序列化JSON
             if (valueInfo.TypeName == typeof(string).AssemblyQualifiedName)
                 value = valueInfo.Value;
@@ -126,14 +126,14 @@ namespace Tools
         public void SetCache(string key, object value, TimeSpan? timeout, ExpireType? expireType)
         {
             // 由于此处使用的是字符串格式缓存，为了能构支持对象缓存，使用JSON序列化存储
-            string jsonStr = string.Empty;
+            string jsonStr;
             // 如果要缓存的值是string就直接缓存，如果不是则序列化JSON
             if (value is string)
                 jsonStr = value as string;
             else
                 jsonStr = JsonConvert.SerializeObject(value);
             // 初始化下面的对象，保存缓存值的状态
-            ValueInfoEntity valueInfo = new ValueInfoEntity
+            ValueInfoEntity valueInfo = new()
             {
                 Value = jsonStr,
                 TypeName = value.GetType().AssemblyQualifiedName,
@@ -242,7 +242,7 @@ namespace Tools
         public void HotestUserTop10()
         {
             // 100个用户评论，每个用户点赞1次
-            List<SortedSetEntry> entries = new List<SortedSetEntry>();
+            //List<SortedSetEntry> entries = new();
             for (int i = 1; i <=100 ; i++)
             {
                 Db.SortedSetAdd("文章1", $"用户{i}", 1);
