@@ -19,7 +19,11 @@ namespace WebApi.Services
             {
                 jb.Num -= number;
                 _context.JBs.Update(jb);
-                _context.SaveChanges();
+                if (_context.SaveChanges() == 1)
+                {
+                    _context.Orders.Add(new Order { Num = number, ShopId = id,Uid=0 });
+                    _context.SaveChanges();
+                }
                 Console.WriteLine("扣除数量成功，当前库存剩余：" + jb.Num);
                 return jb;
             }

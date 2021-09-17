@@ -31,18 +31,25 @@ namespace Tools
                     {
                         if (task.Result.HasValue)
                         {
-                            int[] param = Array.ConvertAll(task.Result.ToString().Split('-'), s => int.Parse(s));
-                            Console.WriteLine(param[0]);
-                            if (HandleData(param))
+                            try
                             {
-                                Console.WriteLine("成功出队：" + task.Result);
+                                int id = int.Parse(task.Result.ToString().Split('-')[0].Split(':')[1]);
+                                int num = int.Parse(task.Result.ToString().Split('-')[1]);
+                                if (HandleData(id, num))
+                                {
+                                    Console.WriteLine("成功出队：" + task.Result);
+                                }
+                                else
+                                {
+                                    _redis.redisDb.ListLeftPushAsync("PeopleQueue", task.Result);
+                                    Console.WriteLine("出列失败，返回队列中");
+                                }
                             }
-                            else
+                            catch (Exception e)
                             {
                                 _redis.redisDb.ListLeftPushAsync("PeopleQueue", task.Result);
-                                Console.WriteLine("出列失败，返回队列中");
+                                Console.WriteLine(e.Message);
                             }
-                           
                         }
                         else
                         {
@@ -63,12 +70,12 @@ namespace Tools
          * 如果直接释放会出现下列问题：
          * 1.System.ObjectDisposedException:'无法访问已释放的上下文实例。导致此错误的一个常见原因是释放从依赖注入解析的上下文实例，然后在应用程   序的其他地方尝试使用相同的上下文实例。如果对上下文实例调用“Dispose”，或将其包装在using语句中，则可能会发生这种情况。如果使用       依赖注    入，则应该让依赖注入容器负责处理上下文实例。对象名：'IntegrationDbContext'
          * **/
-        private bool HandleData(int[] param)
+        private bool HandleData(int id,int num)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 IJBService _jbservice = scope.ServiceProvider.GetRequiredService<IJBService>();
-                return _jbservice.ReduceStock(param[0], param[1])!=null;
+                return _jbservice.ReduceStock(id,num)!=null;
             }
         }
     }
