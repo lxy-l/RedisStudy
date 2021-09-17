@@ -1,4 +1,6 @@
-﻿using WebApi.Data;
+﻿using System;
+
+using WebApi.Data;
 using WebApi.Models;
 
 namespace WebApi.Services
