@@ -1,13 +1,6 @@
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 using StackExchange.Redis;
-
-using System;
-using System.IO;
 
 using Tools;
 
@@ -33,7 +26,6 @@ var config = new ConfigurationOptions
     SyncTimeout = 5000,
     EndPoints = { builder.Configuration.GetConnectionString("RedisConnection") }
 };
-var str = builder.Configuration.GetConnectionString("DefaultConnection");
 //builder.Services.AddDbContext<JBContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddDbContext<JBContext>();
 builder.Services.AddScoped<IJBService, JBService>();
@@ -52,9 +44,11 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c => { c.RoutePrefix = ""; c.SwaggerEndpoint("/swagger/v1/swagger.json", "Restful_WebApi v1"); });
+    app.UseDeveloperExceptionPage();
 }
+
+app.UseSwagger();
+app.UseSwaggerUI(c => { c.RoutePrefix = ""; c.SwaggerEndpoint("/swagger/v1/swagger.json", "Restful_WebApi v1"); });
 
 app.UseCors();
 
